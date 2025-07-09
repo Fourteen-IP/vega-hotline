@@ -16,25 +16,40 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
     - name: Install the latest version of uv
       uses: astral-sh/setup-uv@v6
       with:
         version: "latest"
         activate-environment: true
+
     - name: Set up Python 3.12
       uses: actions/setup-python@v5
       with:
         python-version-file: "pyproject.toml"
+
     - name: Install the project
       run: uv sync
+
     - name: Build with Nuitka
       uses: Nuitka/Nuitka-Action@main
       with:
         nuitka-version: main
         script-name: main.py
         mode: onefile
+
+    - name: Find Nuitka Output
+      id: find_output
+      shell: bash
+      run: |
+        if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+          echo "filepath=build/main.exe" >> "$GITHUB_OUTPUT"
+        else
+          echo "filepath=build/main.bin" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: hotline-${{ matrix.os }}
-        path: main*
+        path: ${{ steps.find_output.outputs.filepath }}
