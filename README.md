@@ -72,7 +72,7 @@ python main.py -c /path/to/your/config.txt -x output.xlsx
 ### Command-Line Arguments
 
 ```
-usage: hotline.exe [-h] [-s START_IP] [-e END_IP] -u USERNAME -p PASSWORD [-x TO_EXCEL] [-j JSON] [-q QUIET] [-c]
+usage: hotline [-h] [-s START_IP] [-e END_IP] -u USERNAME -p PASSWORD [-x TO_EXCEL] [-j JSON] [-q QUIET] [-c]
 
 CLI Tool designed to return hotline information from Sangoma Vegas
 
