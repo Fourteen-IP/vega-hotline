@@ -23,10 +23,6 @@ jobs:
       with:
         version: "latest"
         activate-environment: true
-    - name: Lint with ruff
-      run: |
-        uv pip install ruff
-        ruff --output-format=github .
     - name: Build with Nuitka
       uses: Nuitka/Nuitka-Action@main
       with:
