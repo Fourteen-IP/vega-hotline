@@ -6,6 +6,16 @@ The output can be saved as an Excel spreadsheet or a JSON file.
 
 ## Installation
 
+There are two ways to use this tool:
+
+### From a Release (Recommended)
+
+You can download the latest pre-compiled binaries for Linux and Windows from the Releases page. This is the easiest way to get started.
+
+### From Source
+
+If you want to run the tool from source, you'll need to:
+
 1.  Clone this repository.
 2.  Install the required Python packages using `uv`:
 
