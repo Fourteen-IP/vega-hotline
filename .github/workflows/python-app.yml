@@ -18,10 +18,11 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: "3.12"
-    - name: Install dependencies
-      run: |
-        pip install uv
-        uv pip sync
+    - name: Install the latest version of uv
+      uses: astral-sh/setup-uv@v6
+      with:
+        version: "latest"
+        activate-environment: true
     - name: Lint with ruff
       run: |
         uv pip install ruff
