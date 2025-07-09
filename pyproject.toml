@@ -1,0 +1,15 @@
+[project]
+name = "hotline-py"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "argparse>=1.4.0",
+    "ipaddress>=1.0.23",
+    "openpyxl>=3.1.5",
+    "pandas>=2.3.1",
+    "paramiko>=3.5.1",
+    "regex>=2024.11.6",
+    "requests>=2.32.4",
+]
