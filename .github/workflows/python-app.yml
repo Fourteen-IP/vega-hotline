@@ -28,4 +28,4 @@ jobs:
       with:
         nuitka-version: main
         script-name: main.py
-        mode: app
+        mode: onefile

@@ -7,6 +7,7 @@ requires-python = ">=3.12"
 dependencies = [
     "argparse>=1.4.0",
     "ipaddress>=1.0.23",
+    "nuitka>=2.7.12",
     "openpyxl>=3.1.5",
     "pandas>=2.3.1",
     "paramiko>=3.5.1",
