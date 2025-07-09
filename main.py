@@ -11,9 +11,9 @@ from collections import defaultdict
 requests.packages.urllib3.disable_warnings()
 
 parser = argparse.ArgumentParser(
-    usage="hotline.exe [-h] [-s START_IP] [-e END_IP] -u USERNAME -p PASSWORD [-x TO_EXCEL] [-j JSON] [-q QUIET] [-c]",
+    usage="hotline [-h] [-s START_IP] [-e END_IP] -u USERNAME -p PASSWORD [-x TO_EXCEL] [-j JSON] [-q QUIET] [-c]",
     description="CLI Tool designed to return hotline information from Sangoma Vegas",
-    epilog="If you need the output of one device, just use --start-ip\nExample: hotline.exe -s 192.168.1.10 -u admin -p secret -x output.xlsx",
+    epilog="If you need the output of one device, just use --start-ip\nExample: hotline -s 192.168.1.10 -u admin -p secret -x output.xlsx",
     formatter_class=argparse.RawTextHelpFormatter,
 )
 
@@ -63,9 +63,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 log_level = (
-    logging.ERROR
-    if args.quiet
-    else (logging.DEBUG if args.verbose else logging.INFO)
+    logging.ERROR if args.quiet else (logging.DEBUG if args.verbose else logging.INFO)
 )
 
 logging.basicConfig(
@@ -92,9 +90,7 @@ def pull_backup(ip: ipaddress.IPv4Address) -> str:
             index_page.raise_for_status()
             logging.debug(f"Successfully indexed page for {ip}")
 
-            csrf = regex.search(
-                r'name="csrf-token"\s+value="([^"]+)"', index_page.text
-            )
+            csrf = regex.search(r'name="csrf-token"\s+value="([^"]+)"', index_page.text)
 
             if not csrf:
                 logging.error(f"No CSRF token found for {ip}")
@@ -249,9 +245,7 @@ def main():
                 "Username and password are required unless --from-config (-c) is used"
             )
         if args.start_ip and args.end_ip:
-            logging.info(
-                f"Processing IP range: {args.start_ip} - {args.end_ip}"
-            )
+            logging.info(f"Processing IP range: {args.start_ip} - {args.end_ip}")
             start_ip = ipaddress.ip_address(args.start_ip)
             end_ip = ipaddress.ip_address(args.end_ip)
 

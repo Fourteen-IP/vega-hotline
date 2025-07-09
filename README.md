@@ -15,30 +15,48 @@ The output can be saved as an Excel spreadsheet or a JSON file.
 
 ## Usage
 
-You can run the tool by providing IP addresses and credentials, or by using a pre-existing configuration file.
+You can run the tool using the Python script (`main.py`) or with the pre-compiled binary (`hotline` for Linux, `hotline.exe` for Windows) available in the project's releases.
 
 ### Basic Usage
 
 To connect to a single Vega device and save the output to an Excel file:
 
+**Using Python:**
 ```bash
 python main.py -s <VEGA_IP_ADDRESS> -u <USERNAME> -p <PASSWORD> -x output.xlsx
+```
+
+**Using the binary:**
+```bash
+./hotline -s <VEGA_IP_ADDRESS> -u <USERNAME> -p <PASSWORD> -x output.xlsx
 ```
 
 ### Scan an IP Range
 
 To scan a range of IP addresses:
 
+**Using Python:**
 ```bash
 python main.py -s <START_IP> -e <END_IP> -u <USERNAME> -p <PASSWORD> -x output.xlsx
+```
+
+**Using the binary:**
+```bash
+./hotline -s <START_IP> -e <END_IP> -u <USERNAME> -p <PASSWORD> -x output.xlsx
 ```
 
 ### Use a Local Configuration File
 
 If you have a Vega configuration file (`config.txt`) saved locally, you can use it directly:
 
+**Using Python:**
 ```bash
 python main.py -c /path/to/your/config.txt -x output.xlsx
+```
+
+**Using the binary:**
+```bash
+./hotline -c /path/to/your/config.txt -x output.xlsx
 ```
 
 ### Command-Line Arguments
