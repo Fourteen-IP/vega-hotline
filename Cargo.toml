@@ -1,0 +1,17 @@
+[package]
+name = "hotline"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+clap = { version = "4.5.41", features = ["derive"] }
+cookie_store = "0.21.1"
+env_logger = "0.11.8"
+log = "0.4.27"
+regex = "1.11.1"
+reqwest = { version = "0.12", features = ["cookies", "default-tls", "rustls-tls"] }
+rust_xlsxwriter = "0.89.1"
+scraper = "0.23.1"
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
+tokio = { version = "1.46.1", features = ["full"] }
