@@ -6,6 +6,11 @@ The output can be saved as an Excel spreadsheet or a JSON file.
 
 ## Installation
 
+> [!IMPORTANT]
+> A signed certificate is included with the Windows binary to help prevent SmartScreen or antivirus warnings.  
+> If prompted, you may still need to choose **“More Info” → “Run Anyway”** depending on your system’s security settings.
+
+
 There are two ways to use this tool:
 
 ### From a Release (Recommended)
