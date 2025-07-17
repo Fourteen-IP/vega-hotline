@@ -9,7 +9,8 @@ use std::io::Write;
 #[derive(Debug, Clone, Serialize)]
 pub struct DialPlan {
     pub srce: Option<String>,
-    pub dest: Option<String>,
+    pub dest_raw: Option<String>,
+    pub dest_tel: Option<String>,
     pub subscriber: Option<String>,
 }
 
@@ -21,6 +22,8 @@ pub struct Profile {
 #[derive(Debug, Clone, Serialize)]
 pub struct DialPlanConfig {
     pub profiles: HashMap<String, Profile>,
+    pub ip_address: Option<String>,
+    pub hostname: Option<String>
 }
 
 #[derive(Debug)]
@@ -40,10 +43,11 @@ pub async fn extract_dial_plans(
     let mut profiles: HashMap<String, Profile> = HashMap::new();
     let mut subscribers: HashMap<String, HashMap<String, String>> = HashMap::new();
 
-    let dialplan_dest_regex = Regex::new(r"\planner\_profile\_[0-9]+\_plan\_[0-9]+\_dest")?;
-    let dialplan_srce_regex = Regex::new(r"\planner\_profile\_[0-9]+\_plan\_[0-9]+\_srce")?;
-
-    let regex_auth_subscriber = Regex::new(r"\.sip\.auth\.user\.[0-9]+\.subscriber")?;
+    let dialplan_dest_regex = Regex::new(r"planner_profile_[0-9]+_plan_[0-9]+_dest")?;
+    let dialplan_srce_regex = Regex::new(r"planner_profile_[0-9]+_plan_[0-9]+_srce")?;
+    let auth_subscriber_regex = Regex::new(r"sip_auth_user_[0-9]+_subscriber")?;
+    let srce_regex = Regex::new(r"IF:[0-9]+")?;
+    let tel_extract_regex = Regex::new(r"TEL:(\(\d+\)|\d+)")?;
 
     for (command, value) in &config {
         if dialplan_dest_regex.is_match(command) || dialplan_srce_regex.is_match(command) {
@@ -58,26 +62,40 @@ pub async fn extract_dial_plans(
             });
             let plan = profile.plans.entry(plan_id).or_insert(DialPlan {
                 srce: None,
-                dest: None,
+                dest_raw: None,
+                dest_tel: None,
                 subscriber: None,
             });
 
             match *key {
-                "srce" => plan.srce = Some(value.clone()),
-                "dest" => plan.dest = Some(value.clone()),
+                "srce" => {
+                    if let Some(captures) = srce_regex.captures(&value) {
+                        plan.srce = Some(captures[0].to_string());
+                    }
+                }
+                "dest" => {
+                    plan.dest_raw = Some(value.to_string());
+
+                    if let Some(captures) = tel_extract_regex.captures(&value) {
+                        plan.dest_tel = Some(captures[1].to_string());
+                    }
+                }
                 _ => {}
             }
-        } else if regex_auth_subscriber.is_match(command) {
+        } else if auth_subscriber_regex.is_match(command) {
             let command_split: Vec<&str> = command.split("_").collect();
 
-            let user_id = &command_split[4];
+            let user_id = &command_split[3];
             let mut sub_info = HashMap::new();
 
             sub_info.insert("subscriber".to_string(), value.to_owned());
+
+            let username_key = format!("sip_auth_user_{}_username", user_id);
+
             sub_info.insert(
                 "username".to_string(),
                 config
-                    .get(&format!(".sip.auth.user.{}.username", user_id))
+                    .get(&username_key)
                     .cloned()
                     .unwrap_or_default(),
             );
@@ -100,7 +118,10 @@ pub async fn extract_dial_plans(
         }
     }
 
-    Ok(DialPlanConfig { profiles })
+    let ip_address = config.get("quick_lan_ip").cloned();
+    let hostname = config.get("quick_hostname").cloned();
+
+    Ok(DialPlanConfig { profiles, ip_address, hostname })
 }
 
 pub fn dial_plan_config_to_excel(
@@ -108,33 +129,25 @@ pub fn dial_plan_config_to_excel(
     file_path: &str,
 ) -> Result<(), Box<dyn Error>> {
     let mut rows = Vec::new();
-    let ext_regex = Regex::new(r"TEL:(\d+)")?;
 
     for dial_plan in dial_plans {
         for (profile_id, profile) in dial_plan.profiles {
             for (plan_id, plan) in profile.plans {
-                
-                let subscriber = plan
-                    .subscriber
-                    .as_deref()
-                    .unwrap_or("N/A");
+                if plan.srce.is_some() && plan.dest_tel.is_some() && plan.subscriber.is_some() {
+                    let subscriber = plan.subscriber.as_deref().unwrap_or("N/A");
 
-                let extension = ext_regex
-                    .captures(&plan.dest.expect("Failed to get dest"))
-                    .and_then(|cap| cap.get(0))
-                    .map(|m| m.as_str().to_string());
+                    let row = ExportRow {
+                        vega_ip: dial_plan.ip_address.clone().unwrap_or_default(),
+                        vega_name: dial_plan.hostname.clone().unwrap_or_default(),
+                        profile: profile_id.clone(),
+                        plan: plan_id.clone(),
+                        port: plan.srce.clone().unwrap_or_default(),
+                        destination_ext: plan.dest_tel.clone(),
+                        user_lineport: subscriber.to_string(),
+                    };
 
-                let row = ExportRow {
-                    vega_ip: "TODO".to_string(),
-                    vega_name: "TODO".to_string(),
-                    profile: profile_id.clone(),
-                    plan: plan_id.clone(),
-                    port: plan.srce.clone().unwrap_or_default(),
-                    destination_ext: extension,
-                    user_lineport: subscriber.to_string(),
-                };
-
-                rows.push(row);
+                    rows.push(row);
+                }
             }
         }
     }
@@ -173,14 +186,20 @@ pub fn dial_plan_config_to_excel(
     workbook.save(file_path)?;
 
     Ok(())
-
 }
 
-pub fn dial_plan_config_to_json(dial_plans: Vec<DialPlanConfig>, file_path: &str) -> Result<(), Box<dyn Error>> {
+pub fn dial_plan_config_to_json(
+    dial_plans: Vec<DialPlanConfig>,
+    file_path: &str,
+) -> Result<(), Box<dyn Error>> {
     let json_out = serde_json::to_string_pretty(&dial_plans).expect("Failed to serialise to JSON");
 
-    let mut file = File::create(file_path)
-        .unwrap_or_else(|_| { panic!("{}", format!("Failed to open file at {}", &file_path).to_string()) });
+    let mut file = File::create(file_path).unwrap_or_else(|_| {
+        panic!(
+            "{}",
+            format!("Failed to open file at {}", &file_path).to_string()
+        )
+    });
 
     file.write_all(json_out.as_bytes()).unwrap();
 

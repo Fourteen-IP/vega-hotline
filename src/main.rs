@@ -1,9 +1,9 @@
 use crate::args::{ConfigArgs, ScanArgs};
 use crate::dialplans::DialPlanConfig;
+use log::error;
 use std::error::Error;
-use log::{error};
-use std::net::{IpAddr, Ipv4Addr};
 use std::fs;
+use std::net::{IpAddr, Ipv4Addr};
 
 mod args;
 mod config;
@@ -31,11 +31,11 @@ async fn main() {
 
 async fn handle_scan(scan_args: ScanArgs) -> Result<(), Box<dyn Error>> {
     match (scan_args.start_ip, scan_args.end_ip) {
-        (Some(start), Some(end)) => { //Both Addresses are handed
+        (Some(start), Some(end)) => {
+            //Both Addresses are handed
 
             match (start, end) {
                 (IpAddr::V4(start_ip), IpAddr::V4(end_ip)) => {
-
                     let mut dial_plans = Vec::<DialPlanConfig>::new();
                     let start_ip_int = u32::from(start_ip);
                     let end_ip_int = u32::from(end_ip);
@@ -45,30 +45,25 @@ async fn handle_scan(scan_args: ScanArgs) -> Result<(), Box<dyn Error>> {
                         .collect();
 
                     for ip in ip_range {
-                        let config = config::fetch_config(ip, &scan_args.username, &scan_args.password).await?;
+                        let config =
+                            config::fetch_config(ip, &scan_args.username, &scan_args.password)
+                                .await?;
                         let parsed_config = config::format_config(&config).await?;
                         let dial_plan = dialplans::extract_dial_plans(parsed_config).await?;
 
                         dial_plans.push(dial_plan);
-
                     }
 
                     if let Some(excel_file) = scan_args.excel_file {
-                        dialplans::dial_plan_config_to_excel(
-                            dial_plans.clone(),
-                            &excel_file,
-                        )?;
+                        dialplans::dial_plan_config_to_excel(dial_plans.clone(), &excel_file)?;
                     }
 
                     if let Some(json_file) = scan_args.json_file {
                         dialplans::dial_plan_config_to_json(dial_plans.clone(), &json_file)?;
                     }
-
-
                 }
                 _ => error!("Invalid IP Format"),
             }
-
         }
         (Some(start), None) => {
             //Only start address is handed
@@ -78,10 +73,7 @@ async fn handle_scan(scan_args: ScanArgs) -> Result<(), Box<dyn Error>> {
             let dial_plan = dialplans::extract_dial_plans(parsed_config).await?;
 
             if let Some(excel_file) = scan_args.excel_file {
-                dialplans::dial_plan_config_to_excel(
-                    vec![dial_plan.clone()],
-                    &excel_file,
-                )?;
+                dialplans::dial_plan_config_to_excel(vec![dial_plan.clone()], &excel_file)?;
             }
 
             if let Some(json_file) = scan_args.json_file {
@@ -97,7 +89,6 @@ async fn handle_scan(scan_args: ScanArgs) -> Result<(), Box<dyn Error>> {
 }
 
 async fn handle_config(config_args: ConfigArgs) -> Result<(), Box<dyn Error>> {
-
     let file_path = config_args.config_file;
 
     let config_file: String = fs::read_to_string(file_path).expect("Failed to read config file.");
@@ -111,11 +102,8 @@ async fn handle_config(config_args: ConfigArgs) -> Result<(), Box<dyn Error>> {
         .expect("Failed to parse dial plans");
 
     if let Some(excel_file) = config_args.excel_file {
-        dialplans::dial_plan_config_to_excel(
-            vec![dial_plan.clone()],
-                 &excel_file,
-            )?;
-        }
+        dialplans::dial_plan_config_to_excel(vec![dial_plan.clone()], &excel_file)?;
+    }
 
     if let Some(json_file) = config_args.json_file {
         dialplans::dial_plan_config_to_json(vec![dial_plan.clone()], &json_file)?;

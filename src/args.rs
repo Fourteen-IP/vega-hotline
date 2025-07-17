@@ -69,7 +69,7 @@ pub struct ConfigArgs {
 
     /// Optional JSON output file
     #[arg(short, long)]
-    pub json_file:  Option<String>,
+    pub json_file: Option<String>,
 }
 
 pub fn get_args() -> Args {

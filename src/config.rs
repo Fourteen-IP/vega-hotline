@@ -1,9 +1,9 @@
+use log::{error, info};
 use regex::Regex;
 use reqwest::{Client, redirect::Policy};
 use scraper::{Html, Selector};
 use std::error::Error;
 use std::{collections::HashMap, net::IpAddr};
-use log::{error, info};
 
 const CSRF_TOKEN_SELECTOR: &str = "input[name=\"csrf-token\"]";
 const LOGIN_ENDPOINT: &str = "/vs_login";
@@ -24,7 +24,10 @@ pub async fn fetch_config(
 
     let vega_url = format!("https://{}", vega_ip);
 
-    info!("Fetching index page from https://{}{}", vega_ip, "/index.htm");
+    info!(
+        "Fetching index page from https://{}{}",
+        vega_ip, "/index.htm"
+    );
 
     let index_page = client
         .get(format!("{}/index.htm", vega_url))
@@ -80,7 +83,6 @@ pub async fn fetch_config(
             });
 
         info!("Session ID (sid) extracted: {}", sid.as_ref().unwrap());
-
 
         info!("Pulling config from {}", vega_ip);
         let config = client
