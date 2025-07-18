@@ -7,8 +7,8 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  manual-build:
-    runs-on: ubuntu-latest
+  manual-windows-build:
+    runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -19,8 +19,11 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Build
-        run: cargo build --verbose
+      - name: Build Windows .exe
+        run: cargo build --release
 
-      - name: Run tests
-        run: cargo test --verbose
+      - name: Upload .exe artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rust-windows-binary
+          path: target/release/*.exe
